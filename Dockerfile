@@ -1,6 +1,6 @@
-ARG NGINX_VERSION=1.22.1
+ARG NGINX_VERSION=1.27.3
 
-FROM nginx:$NGINX_VERSION-alpine as build
+FROM nginx:$NGINX_VERSION-alpine AS build
 
 ARG UPLOAD_MODULE_VERSION=2.3.0
 
@@ -32,7 +32,7 @@ RUN cd /opt \
         --with-stream \
     && make modules
 
-FROM nginx:$NGINX_VERSION-alpine as runner
+FROM nginx:$NGINX_VERSION-alpine AS runner
 
 COPY --from=build /opt/nginx/objs/ngx_http_upload_module.so /usr/lib/nginx/modules
 
@@ -41,6 +41,8 @@ RUN apk update && apk upgrade
 RUN apk add --no-cache curl>7.83.1-r5 \
     && chmod -R 644 /usr/lib/nginx/modules/ngx_http_upload_module.so
 
-ENV UPLOAD_FOLDER /upload
-RUN mkdir "$UPLOAD_FOLDER" && chown nginx:nginx -R "$UPLOAD_FOLDER"
+ENV UPLOAD_FOLDER /www_files/store
+RUN mkdir -p "$UPLOAD_FOLDER" && chown nginx:nginx -R "$UPLOAD_FOLDER"
 VOLUME /upload
+
+COPY ./nginx.conf /etc/nginx/nginx.conf
